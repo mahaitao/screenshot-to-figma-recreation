@@ -1,9 +1,9 @@
 ---
 name: screenshot-to-figma-recreation
-description: 图片转figma. Recreate provided screenshots or images as editable Figma design files or frames with pixel-matched canvas size, OCR-accurate editable text, editable UI layers, and separate image layers for complex visuals. Use when a user asks for 图片转figma, image-to-Figma, screenshot-to-Figma, or asks to restore, trace, clone, imitate, copy, recreate, or convert a screenshot/image into a Figma file/design draft while prioritizing visual fidelity over redesign or component reuse.
+description: image to figma. Recreate provided screenshots or images as editable Figma design files or frames with pixel-matched canvas size, OCR-accurate editable text, editable UI layers, and separate image layers for complex visuals. Use when a user asks for image to figma, 图片转figma, image-to-Figma, screenshot-to-Figma, or asks to restore, trace, clone, imitate, copy, recreate, or convert a screenshot/image into a Figma file/design draft while prioritizing visual fidelity over redesign or component reuse.
 ---
 
-# 图片转figma
+# image to figma
 
 ## Goal
 
