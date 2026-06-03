@@ -1,0 +1,4 @@
+interface:
+  display_name: "图片转figma"
+  short_description: "把截图或图片还原为可编辑 Figma 稿。"
+  default_prompt: "Use $screenshot-to-figma-recreation for 图片转figma: turn this screenshot or image into an editable Figma recreation."
