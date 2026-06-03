@@ -19,3 +19,8 @@ $screenshot-to-figma-recreation
 ```
 
 The skill focuses on screenshot tracing, editable text and UI layers, and separate image layers for complex visuals.
+
+## Notes
+
+- This skill can improve recreation fidelity by treating the task as screenshot tracing rather than UI redesign.
+- It can call image generation tools to create image assets, fill them directly into Figma, and preserve cropped visuals through the parent Frame's `clipsContent` setting or a mask.
