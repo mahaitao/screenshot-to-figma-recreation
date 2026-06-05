@@ -1,6 +1,6 @@
 ---
 name: screenshot-to-figma-recreation
-description: image to figma. Recreate provided screenshots or images as editable Figma design files or frames with pixel-matched canvas size, OCR-accurate editable text, editable UI layers, and separate image layers for complex visuals. Use when a user asks for image to figma, 图片转figma, image-to-Figma, screenshot-to-Figma, or asks to restore, trace, clone, imitate, copy, recreate, or convert a screenshot/image into a Figma file/design draft while prioritizing visual fidelity over redesign or component reuse.
+description: image to figma. Recreate provided screenshots or images as editable Figma design files or frames with pixel-matched canvas size, OCR-accurate editable text, editable UI layers, editable SVG/component icons for simple UI symbols, and separate image layers for complex visuals. Use when a user asks for image to figma, 图片转Figma, image-to-Figma, screenshot-to-Figma, or asks to restore, trace, clone, imitate, copy, recreate, or convert a screenshot/image into a Figma file/design draft while prioritizing visual fidelity over redesign or component reuse.
 ---
 
 # image to figma
@@ -20,13 +20,14 @@ Do not beautify, modernize, reinterpret, reorganize, or add content that is not 
 1. Inspect the source screenshot dimensions and create one main Figma frame whose width and height exactly match the image pixels.
 2. If the user provides an existing Figma file, append a new clearly named frame/page without overwriting existing work. If no target exists and Figma creation tools are available, create a new Figma file.
 3. Run OCR or manually transcribe visible text. Preserve capitalization, punctuation, line breaks, alignment, and visible truncation. Use `[unreadable]` for text that cannot be read; do not guess.
-4. Rebuild the base UI with editable Figma layers: background blocks, cards, nav bars, buttons, dividers, simple icons, badges, lines, masks, and text.
-5. Treat photos, complex illustrations, 3D icons, textures, complex gradients, and complex lighting as image layers. For generated-style icons, illustrations, 3D assets, product renders, and decorative visual objects, use image generation/image2 as the default asset source instead of cropping the final screenshot.
-6. Keep each independent visual object as its own image asset and image layer. Do not merge separate illustrations or photos into one large screenshot layer.
-7. Put every image layer inside its owning frame/card/mask. Recreate clipping, rounded corners, occlusion, and stacking with `clipsContent` or masks.
-8. When several complex icons or illustrations in the same functional region share one style, generate them as one image2/image_gen contact sheet when practical, then crop that generated sheet into separate local PNG assets and fill the corresponding Figma nodes individually.
-9. Name layers by region, role, and source so another designer can edit the file without reverse engineering it.
-10. Compare the finished Figma output against the source screenshot and adjust position, size, color, radius, shadows, opacity, and stacking before reporting completion.
+4. Rebuild the base UI with editable Figma layers: background blocks, cards, nav bars, buttons, dividers, simple UI icons, badges, lines, masks, and text.
+5. Treat simple UI icons, line icons, filled glyphs, and small flat symbols as editable vectors or component instances. Use the user's icon library or original SVG sources before hand-drawing paths.
+6. Treat photos, complex illustrations, 3D icons, textures, complex gradients, and complex lighting as image layers. For generated-style illustrations, 3D assets, product renders, decorative visual objects, and complex rendered icons, use image generation/image2 as the default asset source instead of cropping the final screenshot.
+7. Keep each independent visual object as its own image asset and image layer. Do not merge separate illustrations or photos into one large screenshot layer.
+8. Put every image layer inside its owning frame/card/mask. Recreate clipping, rounded corners, occlusion, and stacking with `clipsContent` or masks.
+9. When several complex icons or illustrations in the same functional region share one style, generate them as one image2/image_gen contact sheet when practical, then crop that generated sheet into separate local PNG assets and fill the corresponding Figma nodes individually.
+10. Name layers by region, role, and source so another designer can edit the file without reverse engineering it.
+11. Compare the finished Figma output against the source screenshot and adjust position, size, color, radius, shadows, opacity, and stacking before reporting completion.
 
 ## Canvas And Layout Rules
 
@@ -57,9 +58,46 @@ Rebuild these as editable Figma primitives whenever practical:
 - Dividers, strokes, simple geometric icons, progress bars, and badges
 - Text, labels, headings, captions, counters, and metadata
 
-Use SVG/vector for simple icons only when it preserves the screenshot's visual style. Do not replace source-specific icons with unrelated default library icons.
+Use SVG/vector/component instances for simple icons when it preserves the screenshot's visual style. Do not replace source-specific icons with unrelated default library icons.
 
 Do not use SVG, hand-drawn vectors, CSS gradients, or Python-drawn placeholders to approximate complex illustrations, 3D icons, product renders, or photo-like assets. If a visual has lighting, material, depth, texture, or painterly detail, make it an IMAGE layer backed by image_gen/image2 or another real raster asset.
+
+## Icon And Simple Vector Rules
+
+Use this section for simple UI icons, line icons, filled glyphs, common navigation symbols, status symbols, small flat illustrations, and other low-complexity vector-like shapes. This section must not override the complex image rules: complex illustrations, rendered 3D icons, product imagery, textures, and photo-like assets still use image_gen/image2 or other raster assets first.
+
+Default user icon library:
+
+- Name: `icon-library`
+- URL: https://www.figma.com/design/tyn2BHErZDe4nECltSPdpQ/icon-library?node-id=2004-3620&t=TYqMHHBR5iUihCS5-1
+- Figma file key: `tyn2BHErZDe4nECltSPdpQ`
+- Starting node id: `2004:3620`
+
+Simple icon source priority:
+
+1. Exact or near-exact component from the user's Figma `icon-library`.
+2. Original SVG from a user-provided free/open icon library.
+3. Existing Figma component or vector from the target file/design system.
+4. Auto-vectorized or traced SVG from a tightly cropped icon reference, then manually cleaned.
+5. Hand-drawn SVG path only as a last resort.
+6. Raster image only when editability is less important than fidelity, or when the icon is actually a complex rendered/image asset.
+
+When using an icon library component:
+
+- Preserve it as a component instance when possible.
+- Resize proportionally to match the screenshot's bounding box.
+- Tune stroke width, stroke cap, stroke join, fill, opacity, corner radius, and color to match the source screenshot.
+- Detach only when necessary for visual fidelity, and keep the resulting vector editable.
+- Name the layer with its source, for example `Icon library / tab / home` or `Icon SVG / wallet / coupon`.
+
+When tracing an icon:
+
+- Crop the source icon tightly and inspect it enlarged before drawing.
+- Match the actual silhouette, internal negative space, stroke endings, and alignment to the pixel reference.
+- Prefer fewer clean paths over many noisy points, but do not simplify away recognizable features.
+- Overlay-check the vector against the screenshot before considering it finished.
+
+Do not use image_gen/image2 for simple flat UI icons only because the image-generation path is convenient. Conversely, do not force complex rendered icons into SVG paths only because editability is desired.
 
 ## Complex Image Rules
 
@@ -74,8 +112,8 @@ Use separate image layers for:
 Apply these constraints:
 
 - Use the source screenshot primarily as layout/OCR/reference, not as the default source for complex visual assets.
-- For generated-style complex icons, illustrations, 3D objects, product renders, and decorative visual assets, call the available image generation capability, such as image2 or image_gen. This is mandatory unless the user explicitly allows another source.
-- Do not crop complex generated-style assets from the final screenshot just because it is easier. Source-screenshot crops are allowed only when the user explicitly requests exact screenshot crops, when the visible object is a real photo/avatar/logo that should remain exact, or when image generation is unavailable and the limitation is reported.
+- For generated-style illustrations, 3D objects, product renders, decorative visual assets, and complex rendered icons, call the available image generation capability, such as image2 or image_gen. This is mandatory unless the user explicitly allows another source.
+- Do not crop complex generated-style assets from the final screenshot just because it is easier. Source-screenshot crops are allowed only when the user explicitly requests exact screenshot crops, when the visible object is a real photo/avatar/logo/brand mark that should remain exact, or when image generation is unavailable and the limitation is reported.
 - For a group of related complex assets with the same style, prefer generating one contact sheet/sprite sheet with clear spacing and no text, labels, numbers, or watermarks. Then crop the generated sheet into independent assets before uploading to Figma.
 - Do not substitute Python drawing, SVG drawing, CSS/gradient drawing, simple vector approximation, or placeholder artwork for a final complex image asset unless the user explicitly allows that fallback.
 - Do not generate text, labels, numbers, or watermarks inside generated image assets.
@@ -103,9 +141,11 @@ When using Figma tools, follow the required Figma tool skills and protocols befo
 
 Implementation expectations:
 
+- When writing JavaScript color helpers for Figma paints, support CSS short hex forms before parsing. Expand `#rgb` to `#rrggbb` and `#rgba` to `#rrggbbaa`; do not slice `#fff`, `#000`, or `#777` as if they were six-digit colors. Invalid hex strings should throw instead of silently producing wrong colors.
 - Create or reuse the target Figma file requested by the user.
 - Create the screenshot-matched main frame.
 - Build basic UI as editable layers.
+- Use the user's icon library or original SVG sources for simple UI icons before hand-drawing SVG paths.
 - Use independent IMAGE layers for complex visuals.
 - Keep images inside the correct parent frames or cards.
 - Use clipping or masks where the screenshot shows cropped content.
@@ -121,10 +161,11 @@ Before responding, verify:
 - OCR is complete, including capitalization, punctuation, and line breaks.
 - Unreadable text is marked `[unreadable]`.
 - Text remains editable.
+- Simple UI icons use accurate editable vectors/component instances from the user's icon library or another original SVG source where practical.
 - Colors, spacing, radius, shadows, opacity, and stacking are close to the screenshot.
 - No unexpected redesign, beautification, or added content appears.
 - Complex photos/illustrations/3D/texture regions are image layers.
-- Generated-style complex icons, illustrations, 3D objects, product renders, and decorative assets were generated with image2/image_gen, either as individual assets or as a generated sheet that was then cropped.
+- Generated-style illustrations, 3D objects, product renders, complex rendered icons, and decorative assets were generated with image2/image_gen, either as individual assets or as a generated sheet that was then cropped.
 - No generated-style complex asset was taken from a final screenshot crop unless the user explicitly allowed that exception.
 - No complex image asset was substituted with SVG/vector/CSS/Python-drawn approximation unless the user explicitly allowed that fallback.
 - Independent visual objects are separate image layers, not one merged image.
@@ -139,6 +180,7 @@ Report the Figma link and briefly state:
 
 - The frame name and canvas size.
 - Which regions are editable layers.
+- Which simple icons came from the user's Figma icon library, another SVG source, tracing, or hand-drawn paths.
 - Which regions are image layers and where their local assets were saved.
 - Which image layers were generated with image2/image_gen, including any generated sheet/contact sheet and its cropped local assets.
 - Any source-screenshot crop exceptions and why they were necessary or explicitly requested.
