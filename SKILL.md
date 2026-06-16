@@ -22,12 +22,13 @@ Do not beautify, modernize, reinterpret, reorganize, or add content that is not 
 3. Run OCR or manually transcribe visible text. Preserve capitalization, punctuation, line breaks, alignment, and visible truncation. Use `[unreadable]` for text that cannot be read; do not guess.
 4. Rebuild the base UI with editable Figma layers: background blocks, cards, nav bars, buttons, dividers, simple UI icons, badges, lines, masks, and text.
 5. Treat simple UI icons, line icons, filled glyphs, and small flat symbols as editable vectors or component instances. Use the user's icon library or original SVG sources before hand-drawing paths.
-6. Treat photos, complex illustrations, 3D icons, textures, complex gradients, and complex lighting as image layers. For generated-style illustrations, 3D assets, product renders, decorative visual objects, and complex rendered icons, use image generation/image2 as the default asset source instead of cropping the final screenshot.
+6. Treat photos, avatars, complex illustrations, 3D icons, textures, complex gradients, and complex lighting as image layers. Use image generation/image2 as the default asset source for generated-style illustrations, 3D assets, product renders, decorative visual objects, complex rendered icons, real-person photos, and avatar portraits instead of cropping the final screenshot.
 7. Keep each independent visual object as its own image asset and image layer. Do not merge separate illustrations or photos into one large screenshot layer.
 8. Put every image layer inside its owning frame/card/mask. Recreate clipping, rounded corners, occlusion, and stacking with `clipsContent` or masks.
 9. When several complex icons or illustrations in the same functional region share one style, generate them as one image2/image_gen contact sheet when practical, then crop that generated sheet into separate local PNG assets and fill the corresponding Figma nodes individually.
-10. Name layers by region, role, and source so another designer can edit the file without reverse engineering it.
-11. Compare the finished Figma output against the source screenshot and adjust position, size, color, radius, shadows, opacity, and stacking before reporting completion.
+10. For hero, promo, and feature cards with one continuous complex visual background, rebuild the card as a full-card image background with editable text/UI overlays rather than splitting the background into unrelated vector approximations.
+11. Name layers by region, role, and source so another designer can edit the file without reverse engineering it.
+12. Compare the finished Figma output against the source screenshot and adjust position, size, color, radius, shadows, opacity, and stacking before reporting completion.
 
 ## Canvas And Layout Rules
 
@@ -112,8 +113,9 @@ Use separate image layers for:
 Apply these constraints:
 
 - Use the source screenshot primarily as layout/OCR/reference, not as the default source for complex visual assets.
-- For generated-style illustrations, 3D objects, product renders, decorative visual assets, and complex rendered icons, call the available image generation capability, such as image2 or image_gen. This is mandatory unless the user explicitly allows another source.
-- Do not crop complex generated-style assets from the final screenshot just because it is easier. Source-screenshot crops are allowed only when the user explicitly requests exact screenshot crops, when the visible object is a real photo/avatar/logo/brand mark that should remain exact, or when image generation is unavailable and the limitation is reported.
+- For generated-style illustrations, 3D objects, product renders, decorative visual assets, complex rendered icons, real-person photos, and avatar portraits, call the available image generation capability, such as image2 or image_gen. This is mandatory unless the user explicitly allows another source.
+- For real-person photos and avatar portraits, prefer generated raster assets over source-screenshot crops. Use the screenshot only as visual reference for pose, crop, lighting, clothing, approximate age/gender/presentation, and palette; do not claim identity preservation unless the user explicitly asks for exact source-photo preservation.
+- Do not crop complex generated-style assets, real-person photos, or avatars from the final screenshot just because it is easier. Source-screenshot crops are allowed only when the user explicitly requests exact screenshot crops, when an exact logo/brand mark must remain unchanged, when exact original-photo identity is more important than generated approximation and the user has accepted that exception, or when image generation is unavailable and the limitation is reported.
 - For a group of related complex assets with the same style, prefer generating one contact sheet/sprite sheet with clear spacing and no text, labels, numbers, or watermarks. Then crop the generated sheet into independent assets before uploading to Figma.
 - Do not substitute Python drawing, SVG drawing, CSS/gradient drawing, simple vector approximation, or placeholder artwork for a final complex image asset unless the user explicitly allows that fallback.
 - Do not generate text, labels, numbers, or watermarks inside generated image assets.
@@ -124,6 +126,20 @@ Apply these constraints:
 - Keep each distinct source visual as a separate asset and layer.
 - Place each image inside its semantic parent frame/card/mask.
 - Recreate clipping and rounded crops through the parent frame's clipping/mask behavior.
+
+## Hero And Complex Card Background Rules
+
+When a hero, promo, feature, membership, offer, or banner card contains a continuous visual treatment across the card, classify that treatment as a card background image layer. Continuous visual treatment includes rendered people or products blended into glows, waveforms, abstract lighting, textured gradients, atmospheric effects, decorative illustrations, and non-uniform background art.
+
+For these cards:
+
+- Create the card frame at the exact screenshot position and size.
+- Set the card frame's radius and `clipsContent`/masking so the image background is clipped by the card shape.
+- Generate or source one full-card background image for the complex visual treatment, with no text, labels, numbers, logos, buttons, badges, or UI copy baked into the image.
+- Fill the full card with that image layer first, then overlay all readable content as editable Figma layers: headings, subtitles, counters, badges, avatar stacks, buttons, chips, icons, and metadata.
+- If a card has an irregular silhouette or decorative cutout, use the closest editable mask/vector for the card shape and keep the complex visual as an image fill clipped by that shape.
+- If the screenshot clearly shows separate independent images inside the card, keep those as separate image layers. Otherwise prefer one full-card background image so gradients, glow, and illustration edges stay visually continuous.
+- Name these layers explicitly, for example `Image2 asset / hero card background / no text` and `Hero overlay / title`.
 
 Use clear asset/layer names such as:
 
@@ -164,9 +180,10 @@ Before responding, verify:
 - Simple UI icons use accurate editable vectors/component instances from the user's icon library or another original SVG source where practical.
 - Colors, spacing, radius, shadows, opacity, and stacking are close to the screenshot.
 - No unexpected redesign, beautification, or added content appears.
-- Complex photos/illustrations/3D/texture regions are image layers.
-- Generated-style illustrations, 3D objects, product renders, complex rendered icons, and decorative assets were generated with image2/image_gen, either as individual assets or as a generated sheet that was then cropped.
-- No generated-style complex asset was taken from a final screenshot crop unless the user explicitly allowed that exception.
+- Complex photos/avatars/illustrations/3D/texture regions are image layers.
+- Generated-style illustrations, 3D objects, product renders, complex rendered icons, decorative assets, real-person photos, and avatar portraits were generated with image2/image_gen, either as individual assets or as a generated sheet that was then cropped.
+- Hero, promo, feature, and banner cards with continuous complex visuals use a full-card background image layer with editable text/UI overlays.
+- No generated-style complex asset, real-person photo, or avatar portrait was taken from a final screenshot crop unless the user explicitly allowed that exception, exact original-photo identity was required, image generation was unavailable, or the asset was an exact logo/brand mark.
 - No complex image asset was substituted with SVG/vector/CSS/Python-drawn approximation unless the user explicitly allowed that fallback.
 - Independent visual objects are separate image layers, not one merged image.
 - Image layers sit inside the correct frame/card/mask and clipping is enabled where needed.
@@ -182,7 +199,7 @@ Report the Figma link and briefly state:
 - Which regions are editable layers.
 - Which simple icons came from the user's Figma icon library, another SVG source, tracing, or hand-drawn paths.
 - Which regions are image layers and where their local assets were saved.
-- Which image layers were generated with image2/image_gen, including any generated sheet/contact sheet and its cropped local assets.
-- Any source-screenshot crop exceptions and why they were necessary or explicitly requested.
+- Which image layers were generated with image2/image_gen, including full-card hero/background images, generated photos/avatar portraits, any generated sheet/contact sheet, and its cropped local assets.
+- Any source-screenshot crop exceptions and why they were explicitly requested or necessary, such as exact logo/brand marks, accepted exact-photo preservation, or image generation being unavailable.
 - Any text marked `[unreadable]`.
 - Any limitations, such as unavailable exact fonts or generated approximations for complex assets.
