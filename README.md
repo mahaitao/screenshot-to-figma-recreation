@@ -18,6 +18,10 @@ Ask Codex to use:
 $screenshot-to-figma-recreation
 ```
 
+```text
+$image-to-figma
+```
+
 The skill focuses on screenshot tracing, editable text and UI layers, and separate image layers for complex visuals.
 
 ### Version History
