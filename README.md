@@ -22,6 +22,7 @@ The skill focuses on screenshot tracing, editable text and UI layers, and separa
 
 ### Version History
 
+- `v1.0.6` - `2026-06-18 18:43 +08:00` - Added generated-image fill and crop rules, including FILL-by-default coverage checks, square contact-sheet crops, non-uniform stretch prevention, and geometry-safe handling for circular avatars and rendered icons.
 - `v1.0.5` - `2026-06-16 16:00 +08:00` - Expanded complex image rules for avatars and real-person photos, preferring generated raster assets over final screenshot crops, and added hero/promo/feature card background handling with editable text and UI overlays.
 - `v1.0.4` - `2026-06-05 11:09 +08:00` - Copilot version note: added the precise simple-icon workflow with the default `icon-library`, clarified image_gen/image2-first handling for complex generated-style assets, required source-crop exception reporting, and added a Figma short-hex color helper guard for `#fff`, `#000`, and `#777`.
 - `v1.0.3` - `2026-06-03 18:13 +08:00` - Renamed the skill display name from `图片转figma` to `image to figma` while keeping the Chinese phrase as a trigger alias.

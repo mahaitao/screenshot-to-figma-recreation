@@ -25,7 +25,7 @@ Do not beautify, modernize, reinterpret, reorganize, or add content that is not 
 6. Treat photos, avatars, complex illustrations, 3D icons, textures, complex gradients, and complex lighting as image layers. Use image generation/image2 as the default asset source for generated-style illustrations, 3D assets, product renders, decorative visual objects, complex rendered icons, real-person photos, and avatar portraits instead of cropping the final screenshot.
 7. Keep each independent visual object as its own image asset and image layer. Do not merge separate illustrations or photos into one large screenshot layer.
 8. Put every image layer inside its owning frame/card/mask. Recreate clipping, rounded corners, occlusion, and stacking with `clipsContent` or masks.
-9. When several complex icons or illustrations in the same functional region share one style, generate them as one image2/image_gen contact sheet when practical, then crop that generated sheet into separate local PNG assets and fill the corresponding Figma nodes individually.
+9. When several complex icons or illustrations in the same functional region share one style, generate them as one image2/image_gen contact sheet when practical, then crop that generated sheet into separate local PNG assets and fill the corresponding Figma nodes individually. Avoid asking image generation to create exact geometric containers such as perfect circles when those can be rebuilt more accurately in Figma.
 10. For hero, promo, and feature cards with one continuous complex visual background, rebuild the card as a full-card image background with editable text/UI overlays rather than splitting the background into unrelated vector approximations.
 11. Name layers by region, role, and source so another designer can edit the file without reverse engineering it.
 12. Compare the finished Figma output against the source screenshot and adjust position, size, color, radius, shadows, opacity, and stacking before reporting completion.
@@ -117,6 +117,10 @@ Apply these constraints:
 - For real-person photos and avatar portraits, prefer generated raster assets over source-screenshot crops. Use the screenshot only as visual reference for pose, crop, lighting, clothing, approximate age/gender/presentation, and palette; do not claim identity preservation unless the user explicitly asks for exact source-photo preservation.
 - Do not crop complex generated-style assets, real-person photos, or avatars from the final screenshot just because it is easier. Source-screenshot crops are allowed only when the user explicitly requests exact screenshot crops, when an exact logo/brand mark must remain unchanged, when exact original-photo identity is more important than generated approximation and the user has accepted that exception, or when image generation is unavailable and the limitation is reported.
 - For a group of related complex assets with the same style, prefer generating one contact sheet/sprite sheet with clear spacing and no text, labels, numbers, or watermarks. Then crop the generated sheet into independent assets before uploading to Figma.
+- In generated sheets, prefer generating only the complex internal subject or material detail, not the exact circular/rounded geometric container. Rebuild exact circles, avatar masks, rounded-square shells, and other regular UI geometry as editable Figma vectors or masks.
+- For avatar portraits, ask image generation for square portrait assets instead of circular-cropped portraits. Apply the exact circular crop later in Figma with an equal-width/equal-height ellipse mask or frame.
+- For rendered icon assets with circular or rounded-square backgrounds, draw the outer circle/rounded shell in Figma whenever possible, and use image generation only for the complex interior object, glow, texture, or 3D detail.
+- If an image-generated asset must include a circle or circular object, prompt for `front-facing`, `orthographic`, `perfectly circular`, `no perspective distortion`, `centered in a square cell`, `equal padding`, and `no stretching`; reject or regenerate the sheet if those circles are visibly elliptical before any Figma upload.
 - Do not substitute Python drawing, SVG drawing, CSS/gradient drawing, simple vector approximation, or placeholder artwork for a final complex image asset unless the user explicitly allows that fallback.
 - Do not generate text, labels, numbers, or watermarks inside generated image assets.
 - For transparent assets, generate or process a clean transparent PNG. If needed, use a flat chroma-key background and remove it locally.
@@ -126,6 +130,21 @@ Apply these constraints:
 - Keep each distinct source visual as a separate asset and layer.
 - Place each image inside its semantic parent frame/card/mask.
 - Recreate clipping and rounded crops through the parent frame's clipping/mask behavior.
+
+## Image Fill And Crop Rules
+
+When replacing screenshot-cropped image layers with generated assets, the generated bitmap must visually fill the target container. A generated image that is technically present but appears smaller than the reference because of Figma fill mode, crop padding, or transparent margins is not acceptable.
+
+Apply these constraints:
+
+- Use Figma image fill `FILL` as the default for generated assets. Do not use `FIT` unless the source screenshot visibly shows the whole object floating with intentional padding.
+- Do not use `STRETCH` or any non-uniform X/Y image transform for generated image assets unless the source screenshot itself is visibly distorted. Non-uniform transforms can turn circular generated assets into ellipses.
+- After upload, adjust `imageTransform`, crop settings, or the target layer size so the visible subject occupies the same visual bounds as the screenshot reference.
+- Crop generated contact sheets into square per-asset PNGs whenever the target is a circle, avatar, round icon, or square icon tile. Remove extra transparent pixels, background padding, and unused sheet gutters without changing the aspect ratio.
+- For circular avatars, rounded icons, and masked cards, make the image fill cover the full mask/container first, then rely on the parent mask or clipping to shape the visible crop. The parent circular mask/container must have equal width and height.
+- For hero, promo, and feature backgrounds, fill the entire card/frame with the background image and clip it through the card shape. Do not leave exposed card background unless the screenshot shows that gap.
+- If the generated asset contains unavoidable internal whitespace, regenerate or locally crop/scale the asset before accepting it.
+- Validate every image-backed Figma layer against the screenshot reference for both container coverage and subject scale. If the image looks shrunken inside its container, fix the crop/fill settings before reporting completion.
 
 ## Hero And Complex Card Background Rules
 
@@ -182,11 +201,13 @@ Before responding, verify:
 - No unexpected redesign, beautification, or added content appears.
 - Complex photos/avatars/illustrations/3D/texture regions are image layers.
 - Generated-style illustrations, 3D objects, product renders, complex rendered icons, decorative assets, real-person photos, and avatar portraits were generated with image2/image_gen, either as individual assets or as a generated sheet that was then cropped.
+- Generated sheets do not rely on image generation for exact geometric containers when Figma vectors/masks can provide them, and any required circular generated objects were checked for visible ellipse distortion before upload.
 - Hero, promo, feature, and banner cards with continuous complex visuals use a full-card background image layer with editable text/UI overlays.
 - No generated-style complex asset, real-person photo, or avatar portrait was taken from a final screenshot crop unless the user explicitly allowed that exception, exact original-photo identity was required, image generation was unavailable, or the asset was an exact logo/brand mark.
 - No complex image asset was substituted with SVG/vector/CSS/Python-drawn approximation unless the user explicitly allowed that fallback.
 - Independent visual objects are separate image layers, not one merged image.
 - Image layers sit inside the correct frame/card/mask and clipping is enabled where needed.
+- Generated image fills visually cover their target containers, use `FILL` by default, and have no unintended padding, transparent margins, or shrunken subjects compared with the screenshot reference.
 - Any generated sheet used for related assets was saved locally, cropped into independent assets, and mapped to the correct Figma nodes/layers.
 - Layer names are clear and grouped by area/function.
 - The final Figma link is available.
