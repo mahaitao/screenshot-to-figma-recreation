@@ -1,6 +1,6 @@
 ---
 name: screenshot-to-figma-recreation
-description: image to figma. Recreate provided screenshots or images as editable Figma design files or frames with pixel-matched canvas size, OCR-accurate editable text, editable UI layers, editable SVG/component icons for simple UI symbols, and separate image layers for complex visuals. Use when a user asks for image to figma, 图片转Figma, image-to-Figma, screenshot-to-Figma, or asks to restore, trace, clone, imitate, copy, recreate, or convert a screenshot/image into a Figma file/design draft while prioritizing visual fidelity over redesign or component reuse.
+description: image to figma. Classify provided UI screenshots before recreation, then rebuild them as editable Figma design files or frames; normalize complete mobile App screenshots to a 402-pixel logical width with proportional height while handling mobile web, partial UI, tablet, desktop, and uncertain references appropriately. Preserve OCR-accurate editable text, editable UI layers, editable SVG/component icons for simple UI symbols, and separate image layers for complex visuals. Use when a user asks for image to figma, image-to-Figma, screenshot-to-Figma, or asks to restore, trace, clone, imitate, copy, recreate, or convert a UI screenshot/image into a Figma file/design draft while prioritizing visual fidelity over redesign or component reuse.
 ---
 
 # image to figma
@@ -17,7 +17,7 @@ Do not beautify, modernize, reinterpret, reorganize, or add content that is not 
 
 ## Workflow
 
-1. Inspect the source screenshot dimensions and create one main Figma frame whose width and height exactly match the image pixels.
+1. Inspect the source dimensions and classify the reference as a complete mobile App screenshot, mobile web screenshot, partial UI screenshot, tablet/desktop UI, or uncertain type. Apply the `402`-pixel normalization only after classifying it as a complete mobile App screenshot.
 2. If the user provides an existing Figma file, append a new clearly named frame/page without overwriting existing work. If no target exists and Figma creation tools are available, create a new Figma file.
 3. Run OCR or manually transcribe visible text. Preserve capitalization, punctuation, line breaks, alignment, and visible truncation. Use `[unreadable]` for text that cannot be read; do not guess.
 4. Rebuild the base UI with editable Figma layers: background blocks, cards, nav bars, buttons, dividers, simple UI icons, badges, lines, masks, and text.
@@ -30,14 +30,79 @@ Do not beautify, modernize, reinterpret, reorganize, or add content that is not 
 11. Name layers by region, role, and source so another designer can edit the file without reverse engineering it.
 12. Compare the finished Figma output against the source screenshot and adjust position, size, color, radius, shadows, opacity, and stacking before reporting completion.
 
+## Screenshot Type Classification
+
+Classify the reference before choosing the target canvas:
+
+- **Complete mobile App screenshot:** The image represents a full phone App screen and may include a mobile status bar, bottom navigation, Home Indicator, native App header, or a clearly mobile-native page structure. Normalize it to width `402` and derive its height proportionally.
+- **Mobile web screenshot:** The image represents a phone-sized website or browser view, especially when browser chrome, an address bar, or web-specific navigation is visible. Do not classify it as a mobile App. Use a mobile-web canvas appropriate to the task; use width `402` only when the user requests it or the target file already establishes that convention.
+- **Partial UI screenshot:** The image shows only a component, card, dialog, sheet, cropped region, or incomplete screen. Do not enlarge the isolated reference to width `402`. Reconstruct it proportionally and place it in an appropriate page context when needed.
+- **Tablet or desktop UI:** The image clearly represents a tablet, desktop application, or desktop website. Do not apply the mobile `402` rule; preserve or infer the relevant device canvas.
+- **Uncertain type:** If the reference cannot be classified reliably, preserve its original aspect ratio and logical scale and ask the user before applying the mobile `402` convention.
+
+This classification is a reasoned visual judgment, not a rigid multi-signal gate. Do not require a fixed number of mobile indicators before classifying a screenshot.
+
 ## Canvas And Layout Rules
 
-- Match the original screenshot canvas size exactly.
+- Treat `402` as the canonical logical width only for references classified as complete mobile App screenshots, regardless of source pixel density.
+- Compute one uniform scale factor: `scale = 402 / sourceWidth`.
+- Compute the target frame height proportionally: `targetHeight = round(sourceHeight * scale)`.
+- Apply the same scale factor to x/y coordinates, widths, heights, font sizes, line heights, spacing, radii, strokes, shadows, blur values, and other measurable visual properties.
+- Do not scale horizontal and vertical dimensions independently. Circles, icons, images, text, and effects must retain their original proportions.
+- Do not crop, pad, compress, or force the target height to `874`; height is determined by the source aspect ratio.
+- Long screenshots naturally produce frames taller than a single viewport.
+- A cropped component, dialog, card, or partial-screen reference must not be enlarged to width `402`. Reconstruct it at the proportional logical size and place it within an appropriate `402`-wide page context when needed.
 - Preserve overall scale, aspect ratio, crop, and composition.
 - Position elements as close as possible to the original x/y coordinates.
 - Match width, height, spacing, corner radius, stroke, shadow, blur, opacity, and layer order.
 - Do not use responsive reinterpretation unless the user provides multiple screenshots for multiple viewports.
 - When appending to an existing Figma file, create an independent, clearly named frame or page instead of replacing existing content.
+
+## Layer Architecture And Container Selection
+
+Treat sensible layer organization as part of the initial reconstruction, but never let structural cleanup reduce screenshot fidelity. Use a two-pass approach when needed:
+
+1. Reconstruct the visual result accurately, including dimensions, coordinates, hierarchy, clipping, effects, text wrapping, and stacking.
+2. Normalize the layer structure only where the same visual result can be preserved.
+
+Choose containers by responsibility:
+
+- Use `Group` for semantic collection only when the parent does not need its own visual boundary, background, clipping, constraints, sizing, or layout behavior. Typical uses include icon paths, waveform segments, decorative layers, and complex visual combinations whose existing coordinates must be preserved.
+- Use `Frame` when the container owns a visual or structural boundary, including cards, panels, navigation bars, masks, rounded backgrounds, fills, strokes, clipping regions, fixed dimensions, responsive constraints, or effects.
+- Use an Auto Layout `Frame` when children have a clear horizontal, vertical, or repeated-list relationship and should adapt when text or content changes.
+
+Use the practical rule: pure visual composition uses `Group`; boundary responsibility uses `Frame`; arrangement responsibility uses Auto Layout. Visual fidelity remains more important than the container type.
+
+Prefer building clear repeated structures with Auto Layout from the beginning instead of reconstructing them with absolute coordinates and converting them later. Do not add Auto Layout merely to maximize Auto Layout coverage. Keep a `Group` or regular `Frame` when conversion would change coordinates, dimensions, clipping, effects, stacking, text wrapping, or visual alignment. Out-of-flow decorative elements may remain grouped or absolutely positioned when that is necessary to preserve the source composition.
+
+After organizing layers, verify that:
+
+- The main frame dimensions remain unchanged.
+- Child positions and visual bounds still match the screenshot.
+- Shadows, masks, clipping, opacity, and stacking remain unchanged.
+- Text wrapping, truncation, and alignment remain unchanged.
+- Decorative layers have not been pulled into an inappropriate layout flow.
+
+## Existing Design System Integration
+
+When appending a screenshot to an existing product file, inspect the file's variables, styles, and component sets before rebuilding the new frame. Use the existing design system incrementally without forcing the screenshot into a mismatched abstraction.
+
+- Reuse an existing variable, style, or component instance when it preserves the screenshot's visual fidelity.
+- Extend an existing component with a variant when the new UI is a reusable state or configuration of the same component.
+- Create a new semantic variable, style, or component only when the pattern is stable and likely to recur across screens.
+- Keep one-off visual treatments local to the reconstructed frame instead of promoting them into the global system.
+- Do not modify, replace, rename, or consolidate existing design-system entities unless the user explicitly requests it.
+- When an existing token or component conflicts with the screenshot, preserve fidelity first and use a local exception or a clearly named incremental extension.
+- After reconstruction, audit for duplicate variables, near-identical styles, duplicate components, conflicting names, and unnecessary variant axes.
+
+If the target file already contains a design system, load and follow the available Figma design-system or library guidance for discovery and incremental extension. If no design system exists, complete the screenshot-faithful reconstruction first, then create foundations, variables, styles, and reusable components as a separate phase. Do not infer a complete design system from a single exceptional visual treatment.
+
+For an existing product file, use this priority order:
+
+1. Visual fidelity
+2. Editable structure
+3. Design-system consistency
+4. Component reuse
 
 ## Text Rules
 
@@ -178,7 +243,7 @@ Implementation expectations:
 
 - When writing JavaScript color helpers for Figma paints, support CSS short hex forms before parsing. Expand `#rgb` to `#rrggbb` and `#rgba` to `#rrggbbaa`; do not slice `#fff`, `#000`, or `#777` as if they were six-digit colors. Invalid hex strings should throw instead of silently producing wrong colors.
 - Create or reuse the target Figma file requested by the user.
-- Create the screenshot-matched main frame.
+- For a reference classified as a complete mobile App screenshot, create the main frame at width `402` with height derived from the source aspect ratio. Use the classified canvas rule for all other reference types.
 - Build basic UI as editable layers.
 - Use the user's icon library or original SVG sources for simple UI icons before hand-drawing SVG paths.
 - Use independent IMAGE layers for complex visuals.
@@ -192,7 +257,10 @@ Implementation expectations:
 
 Before responding, verify:
 
-- Canvas size exactly matches the source screenshot.
+- The screenshot type was classified before choosing the canvas.
+- Complete mobile App frames use width `402`, and their height equals `round(sourceHeight * 402 / sourceWidth)`.
+- Mobile web, partial UI, tablet/desktop, and uncertain references were not automatically forced to width `402`.
+- The reconstruction uses one uniform scale factor with no non-uniform stretching or forced `874` height.
 - OCR is complete, including capitalization, punctuation, and line breaks.
 - Unreadable text is marked `[unreadable]`.
 - Text remains editable.
@@ -210,6 +278,8 @@ Before responding, verify:
 - Generated image fills visually cover their target containers, use `FILL` by default, and have no unintended padding, transparent margins, or shrunken subjects compared with the screenshot reference.
 - Any generated sheet used for related assets was saved locally, cropped into independent assets, and mapped to the correct Figma nodes/layers.
 - Layer names are clear and grouped by area/function.
+- Groups, Frames, and Auto Layout Frames were chosen according to semantic, boundary, and arrangement responsibilities without causing visual drift.
+- Existing variables, styles, and components were reused where appropriate, and any incremental additions were checked for duplicates and naming conflicts.
 - The final Figma link is available.
 
 ## Final Response
